@@ -40,7 +40,7 @@ bot.on('error', (err) => {
 });
 
 bot.on('chat', (username, message) => {
-    //if (username === bot.username) return; // Не записываем свои сообщения
+    //if (username === bot.username) return; // Не записываем свои сообщения, отключаемо
     const chatMessage = {
         role: username,
         content: message
@@ -64,24 +64,15 @@ process.stdin.on('data', (data) => {
                 bot.pathfinder.goto(new goals.GoalNear(destination.x, destination.y, destination.z, distance), (err) => {
                     if (err) {
                         console.error('Error navigating:', err);
-                        console.log("Navigation result: error"); // Сообщаем об ошибке
+                        console.log("Navigation result: error");
                     } else {
-                        console.log("Navigation result: success"); // Сообщаем об успехе
+                        console.log("Navigation result: success");
                     }
                 });
 
             } else {
                 console.error(`Player ${command.player_name} not found.`);
                 console.log("Navigation result: error"); // Игрок не найден
-            }
-        }
-        else if (command.type === 'get_position') {
-            const player = bot.players[command.player_name];
-            if (player && player.entity) {
-                const pos = player.entity.position;
-                console.log(`Player position: x=${pos.x}, y=${pos.y}, z=${pos.z}`);
-            } else {
-                console.error(`Player ${command.player_name} not found or has no entity.`);
             }
         }
         else {

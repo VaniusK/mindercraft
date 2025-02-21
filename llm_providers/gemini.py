@@ -1,6 +1,14 @@
 from imports import *
 from llm_providers.base_llm import BaseLLM
 
+
+def format_response(response: str) -> str:
+    if len(response) > 0:
+        if response[0] == response[-1] == '"':
+            response = response[1: -1]
+    return response
+
+
 class Gemini(BaseLLM):
     def __init__(self, api_key : str, model : str, agent_functions : List[Callable], **kwargs):
         super().__init__(api_key, model, agent_functions, **kwargs)
@@ -14,8 +22,6 @@ class Gemini(BaseLLM):
         )
         self.model = model
 
-
-
     def send_message(self, history: List[Dict[Any, Any]]) -> str:
         try:
 
@@ -25,7 +31,7 @@ class Gemini(BaseLLM):
                 contents=str(history),
                 config=self.config
             )
-            return response.text
+            return format_response(response.text)
 
         except Exception as e:
             print(f"An unexpected error occurred: {e}")

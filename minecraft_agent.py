@@ -2,7 +2,7 @@ from imports import *
 from llm import LLM
 
 class MinecraftAgent:
-    def __init__(self, host, port, version, username):
+    def __init__(self, host : str, port: int, version: str, username: str):
         self.host = host
         self.port = port
         self.version = version
@@ -13,8 +13,8 @@ class MinecraftAgent:
         self._stdout_thread = None
         self._stderr_thread = None
         self._stop_event = threading.Event()
+        self.to_answer = False
         self.llm = LLM('gemini', [self.goto_player])
-        self.player_position = None
 
     def _read_output(self, stream, log_list, is_chat=False):
         """Читает вывод из потока и добавляет его в соответствующий лог."""
@@ -23,18 +23,15 @@ class MinecraftAgent:
                 line = stream.readline()
                 if line:
                     decoded_line = line.strip()
+                    print(decoded_line)
                     if is_chat:
                         try:
                             chat_message = json.loads(decoded_line)
                             log_list.append(chat_message)
+                            if chat_message['role'] != self.username:
+                                self.to_answer = True
                         except json.JSONDecodeError:
                             print(f"Invalid chat message format: {decoded_line}")
-                    else:
-                        if "Player position:" in decoded_line:
-                            self._update_player_position(decoded_line)
-
-
-                        log_list.append(decoded_line)
                 else:
                     if self.process.poll() is not None:
                         break
@@ -42,19 +39,6 @@ class MinecraftAgent:
             except Exception as e:
                 print(f"Error reading output: {e}")
                 break
-
-    def _update_player_position(self, position_str):
-        """Обновляет позицию игрока, извлекая её из строки."""
-        try:
-            match = re.search(r"Player position: x=(-?\d+\.\d+), y=(-?\d+\.\d+), z=(-?\d+\.\d+)", position_str)
-            if match:
-                x = float(match.group(1))
-                y = float(match.group(2))
-                z = float(match.group(3))
-                self.player_position = (x, y, z)
-                # print(f"Parsed player position: {self.player_position}") # раскомментируй для дебага
-        except Exception as e:
-            print(f"Error parsing player position: {e}")
 
     def start(self):
         """Запускает бота Mineflayer и потоки для чтения вывода."""
@@ -107,11 +91,12 @@ class MinecraftAgent:
             self.process.stdin.write(json.dumps(command) + "\n")
             self.process.stdin.flush()
 
-    def goto_player(self, player_name: str, distance: float) -> bool:
-        """Идет к игроку, пока расстояние до него не будет <= distance. Используйте distance = 3, если не указано иное(в 99% случаев используй 3 блока).
-            Возвращает True, если успешно дошёл, иначе False(если не смог дойти)."""
+    def goto_player(self, player_name: str) -> bool:
+        """Идет к игроку, пока расстояние до него не будет <= 3 блока.
+            Возвращает True, если успешно вышел и дошёл до цели, иначе False(если не смог дойти)."""
+        print("Going")
         if self.process and self.process.poll() is None:
-            command = {"type": "go_to_player", "player_name": player_name, "distance": distance}
+            command = {"type": "go_to_player", "player_name": player_name, "distance": 3}
             self.process.stdin.write(json.dumps(command) + "\n")
             self.process.stdin.flush()
 
@@ -126,23 +111,6 @@ class MinecraftAgent:
     def get_stderr_log(self):
         return self.stderr_log.copy()
 
-
-    def main_loop(self):
-        while True:
-            time.sleep(1)
-            log = self.get_chat_log()
-            if len(log) > 0:
-                if log[-1]['role'] != "Gemini":
-                    response = self.llm.send_message(log + config['prompt'])
-                    if response:
-                        self.send_chat(response)
-
-                    if log[-1]['content'] == 'stop':
-                        break
-            #break
-
-        self.stop()
-
     def clear_logs(self):
         self.chat_log.clear()
         self.stderr_log.clear()
@@ -150,11 +118,18 @@ class MinecraftAgent:
     def is_running(self):
         return self.process is not None and self.process.poll() is None
 
+    def main_loop(self):
+        while True:
+            log = self.get_chat_log()
+            if self.to_answer:
+                print(log)
+                self.to_answer = False
+                response = self.llm.send_message(log + config['prompt'])
+                if response:
+                    self.send_chat(response)
 
-    def get_player_position(self, player_name: str):
-        """Запрашивает позицию указанного игрока."""
-        if self.process and self.process.poll() is None:
-            command = {"type": "get_position", "player_name": player_name}
-            self.process.stdin.write(json.dumps(command) + "\n")
-            self.process.stdin.flush()
-            # return self.player_position  # Возвращать сразу не стоит, нужно дождаться обновления в _read_output
+                if log[-1]['content'] == 'stop':
+                    break
+            #break
+
+        self.stop()
