@@ -4,8 +4,8 @@ from llm_providers.base_llm import BaseLLM
 
 def format_response(response: str) -> str:
     if len(response) > 0:
-        if response[0] == response[-1] == '"':
-            response = response[1: -1]
+        if response[0] == response[-2] == '"':
+            response = response[1:-2]
     return response
 
 

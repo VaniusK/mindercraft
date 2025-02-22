@@ -14,4 +14,7 @@ import sys
 import selectors
 import threading
 import re
+import queue
 from google.genai import types
+import websockets
+import asyncio

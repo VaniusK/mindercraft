@@ -16,8 +16,10 @@ def main():
 
     # Запускаем бота
     for agent in agents:
-        print("Starting")
         agent.start()
+
+    while True:
+        pass
 
 
 
