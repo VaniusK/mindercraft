@@ -40,7 +40,7 @@ class MinecraftAgent:
                         self.chat_updated.set()
             except Exception as e:
                 print(f"Ошибка сокета {e}")
-                time.sleep(2)  # Реконнект через 2 секунды
+                await asyncio.sleep(2)
 
     def run_websocket(self):
         """Запускает asyncio event loop в отдельном потоке."""
@@ -50,7 +50,7 @@ class MinecraftAgent:
     def start(self):
         """Запускает бота Mineflayer"""
         command = [
-            "C:\\nvm4w\\nodejs\\node.exe",
+            os.path.expanduser("~/.nvm/versions/node/v24.18.0/bin/node"),
             "mineflayer_bot.js",
             "--host", self.host,
             "--port", str(self.port),
@@ -61,8 +61,6 @@ class MinecraftAgent:
         self.process = subprocess.Popen(
             command,
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             text=True,
             encoding='utf-8'
         )

@@ -4,7 +4,6 @@ from minecraft_agent import MinecraftAgent
 from llm import LLM
 
 def main():
-    # Создаем экземпляр MinecraftAgent
     agents = [MinecraftAgent(
         config["MINECRAFT_HOST"],
         config["MINECRAFT_PORT"],
@@ -13,8 +12,6 @@ def main():
     ) for i in range(1)]
 
 
-
-    # Запускаем бота
     for agent in agents:
         agent.start()
 

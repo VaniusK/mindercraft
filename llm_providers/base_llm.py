@@ -1,4 +1,11 @@
 from imports import *
+
+def format_response(response: str) -> str:
+    if len(response) > 0:
+        if response[0] == response[-2] == '"':
+            response = response[1:-2]
+    return response
+
 class BaseLLM(ABC):
     """
        Абстрактный базовый класс для всех LLM.

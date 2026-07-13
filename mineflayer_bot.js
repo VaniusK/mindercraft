@@ -28,7 +28,6 @@ bot.once('spawn', () => {
 });
 
 wss.on('connection', (ws) => {
-    bot.chat("Привет");
     wsClient = ws;
 
     ws.on('message', async (data) => {

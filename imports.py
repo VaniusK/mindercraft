@@ -5,7 +5,6 @@ import os
 from abc import ABC, abstractmethod
 from config import config
 import importlib
-from PIL import Image
 from typing import List, Any, Dict, Callable
 import time
 import subprocess
