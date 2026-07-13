@@ -20,11 +20,8 @@ class LLM:
         class_name = llm_config["class"]
 
         try:
-            # Динамически импортируем модуль
             module = importlib.import_module(module_name)
-            # Получаем класс из модуля
             llm_class = getattr(module, class_name)
-            # Создаем экземпляр класса, передавая параметры из конфига
             llm_instance = llm_class(**llm_config, agent_functions=self.agent_functions)
             return llm_instance
         except ImportError:

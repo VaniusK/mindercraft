@@ -1,10 +1,41 @@
 from imports import *
+import inspect
 
 def format_response(response: str) -> str:
     if len(response) > 0:
         if response[0] == response[-2] == '"':
             response = response[1:-2]
     return response
+
+def functions_to_json(functions: list[Callable]) -> list[dict[Any, Any]]:
+    jsons = []
+    for function in functions:
+        json = {}
+        json["type"] = "function"
+        json["function"] = {}
+        json["function"]["name"] = function.__name__
+        json["function"]["description"] = function.__doc__
+        json_params = {}
+        json_params["type"] = "object"
+        function_params = {}
+        required_params = []
+        sig = inspect.signature(function)
+        for name, param in sig.parameters.items():
+            if name == "self":
+                continue
+            function_params[name] = {
+                "type": str(param.annotation)
+            }
+            if param.default == inspect.Parameter.empty:
+                required_params.append(name)
+        
+        json_params["properties"] = function_params;
+        json_params["required"] = required_params;
+        json["function"]["parameters"] = json_params
+        jsons.append(json)
+
+    return jsons
+
 
 class BaseLLM(ABC):
     """

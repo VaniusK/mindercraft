@@ -17,7 +17,7 @@ class MinecraftAgent:
         self.result_queue = queue.Queue()
         self.chat_updated = threading.Event()
         self.delay = 0.1
-        self.llm = LLM('gemini', [self.go_to_player])
+        self.llm = LLM(None, [self.go_to_player])
 
     async def connect_websocket(self):
         """Устанавливает соединение с WebSocket-сервером."""
@@ -29,8 +29,11 @@ class MinecraftAgent:
                     async for message in ws:
                         print(message)
                         data = json.loads(message)
+                        sanitized_data = data.copy()
                         with self.chat_log_lock:
-                            self.chat_log.append(data)
+                            sanitized_data.pop("type")
+                            sanitized_data["role"] = "user"
+                            self.chat_log.append(sanitized_data)
 
                         if data["type"] == "chat":
                             if data['role'] != self.username:
@@ -96,7 +99,7 @@ class MinecraftAgent:
             command = {"type": "go_to_player", "player_name": player_name, "distance": 3}
             print("Going")
             with self.chat_log_lock:
-                self.chat_log.append(command)
+                self.chat_log.append({"role": "system", "content": "executed command " + str(command)})
             self.send_command(command)
 
             try:

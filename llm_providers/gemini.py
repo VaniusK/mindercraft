@@ -17,7 +17,7 @@ class Gemini(BaseLLM):
 
     def send_message(self, history: List[Dict[Any, Any]]) -> str:
         response = self.client.models.generate_content(
-                model='gemini-3.1-flash-lite',
+                model=self.model,
                 contents=str(history),
                 config=self.config
             )

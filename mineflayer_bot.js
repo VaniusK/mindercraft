@@ -84,6 +84,6 @@ wss.on('connection', (ws) => {
 // Отправка чата в Python
 bot.on('chat', (username, message) => {
     if (wsClient) {
-        wsClient.send(JSON.stringify({ type: "chat", role: username, content: message }));
+        wsClient.send(JSON.stringify({ type: "chat", role: username, content: username + " sent chat message: \"" + message + "\""}));
     }
 });
