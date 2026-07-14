@@ -13,6 +13,7 @@ class Custom(BaseLLM):
         self.functions_dict = {func.__name__: func for func in self.agent_functions}
 
     def send_message(self, history: List[Dict[Any, Any]]) -> str:
+        print(history)
         response = self.client.chat.completions.create(
                 model=self.model,
                 messages=history,
@@ -23,8 +24,9 @@ class Custom(BaseLLM):
             for tool_call in response.choices[0].message.tool_calls:
                 function_name = tool_call.function.name
                 function_args = json.loads(tool_call.function.arguments)
-                function_to_call = self.functions_dict[function_name]
-                function_to_call(**function_args)
+                if function_name in self.functions_dict:
+                    function_to_call = self.functions_dict[function_name]
+                    function_to_call(**function_args)
 
         return format_response(response.choices[0].message.content or "") 
 

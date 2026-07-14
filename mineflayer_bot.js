@@ -45,14 +45,23 @@ wss.on('connection', (ws) => {
                         if (wsClient) {
                             wsClient.send(JSON.stringify({
                                 type: "result",
-                                status: "success"
+                                role: "system",
+                                content: JSON.stringify({
+                                    action: "go_to_player",
+                                    result: "success"
+                                })
                             }));
                         }
                     } catch (error) {
                         if (wsClient) {
                             wsClient.send(JSON.stringify({
                                 type: "result",
-                                status: "error"
+                                role: "tool",
+                                content: JSON.stringify({
+                                    action: "go_to_player",
+                                    result: "error",
+                                    reason: "Couldn't reach the player"
+                                })
                             }));
                         }
                     }
@@ -60,8 +69,12 @@ wss.on('connection', (ws) => {
                     if (wsClient) {
                         wsClient.send(JSON.stringify({
                             type: "result",
-                            status: "error",
-                            reason: "Couldn't find the player"
+                            role: "tool",
+                            content: JSON.stringify({
+                                action: "go_to_player",
+                                result: "error",
+                                reason: "Couldn't find the player"
+                            })
                         }));
                     }
                 }
@@ -70,8 +83,12 @@ wss.on('connection', (ws) => {
             if (wsClient) {
                 wsClient.send(JSON.stringify({
                     type: "result",
-                    status: "error",
-                    reason: "Couldn't parse the command"
+                            role: "tool",
+                            content: JSON.stringify({
+                                action: "go_to_player",
+                                result: "error",
+                                reason: "Unknown"
+                            })
                 }));
             }
         }
@@ -84,6 +101,6 @@ wss.on('connection', (ws) => {
 // Отправка чата в Python
 bot.on('chat', (username, message) => {
     if (wsClient) {
-        wsClient.send(JSON.stringify({ type: "chat", role: username, content: username + " sent chat message: \"" + message + "\""}));
+        wsClient.send(JSON.stringify({ type: "chat", sender: username, role: "user", content: username + " sent chat message: \"" + message + "\"" }));
     }
 });

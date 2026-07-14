@@ -1,5 +1,7 @@
 from imports import *
 from llm import LLM
+from context_handler import ContextHandler
+from function_handler import FunctionHandler
 
 
 class MinecraftAgent:
@@ -7,17 +9,16 @@ class MinecraftAgent:
         self.host = host
         self.port = port
         self.version = version
-        self.username = username
         self.ws = None
         self.loop = asyncio.new_event_loop()
         self.process = None
-        self.chat_log = []
-        self.chat_log_lock = threading.Lock()
         self.to_answer = threading.Event()
         self.result_queue = queue.Queue()
         self.chat_updated = threading.Event()
         self.delay = 0.1
-        self.llm = LLM(None, [self.go_to_player])
+        self.context_handler = ContextHandler(config["prompt"], username)
+        self.function_handler = FunctionHandler(self.context_handler, self.send_command)
+        self.llm = LLM(None, self.function_handler.functions)
 
     async def connect_websocket(self):
         """Устанавливает соединение с WebSocket-сервером."""
@@ -29,16 +30,11 @@ class MinecraftAgent:
                     async for message in ws:
                         print(message)
                         data = json.loads(message)
-                        sanitized_data = data.copy()
-                        with self.chat_log_lock:
-                            sanitized_data.pop("type")
-                            sanitized_data["role"] = "user"
-                            self.chat_log.append(sanitized_data)
-
+                        self.context_handler.add_event(data)
                         if data["type"] == "chat":
-                            if data['role'] != self.username:
+                            if data['sender'] != self.context_handler.username:
                                 self.to_answer.set()
-                        else:
+                        elif data["type"] == "result":
                             self.result_queue.put(data)
                         self.chat_updated.set()
             except Exception as e:
@@ -58,7 +54,7 @@ class MinecraftAgent:
             "--host", self.host,
             "--port", str(self.port),
             "--version", self.version,
-            "--username", self.username,
+            "--username", self.context_handler.username,
         ]
 
         self.process = subprocess.Popen(
@@ -85,49 +81,18 @@ class MinecraftAgent:
             self.process.wait()
             self.process = None
 
-    def send_chat(self, message: str) -> None:
-        """Отправляет сообщение в чат от лица агента"""
-        if self.process and self.process.poll() is None:
-            command = {"type": "chat", "message": message}
-            self.send_command(command)
-
-    def go_to_player(self, player_name: str) -> dict:
-        """Идет к игроку, пока расстояние до него не будет <= 3 блока.
-        Возвращает success, если успешно дошёл и стоит около игрока
-        Возвращает error, если не смог дойти.
-        """
-        if self.process and self.process.poll() is None:
-            command = {"type": "go_to_player", "player_name": player_name, "distance": 3}
-            print("Going")
-            with self.chat_log_lock:
-                self.chat_log.append({"role": "system", "content": "executed command " + str(command)})
-            self.send_command(command)
-
-            try:
-                return self.result_queue.get()
-            except queue.Empty:
-                return False
-        return False
-
-    def get_chat_log(self):
-        with self.chat_log_lock:
-            return self.chat_log.copy()
-
     def is_running(self):
         return self.process is not None and self.process.poll() is None
 
     def main_loop(self):
         while True:
-            log = self.get_chat_log()
-            if len(log) > 0 and 'content' in log[-1] and log[-1]['content'] == 'stop':
+            prompt = self.context_handler.get_prompt()
+            if "STOP" in prompt[-1]['content']:
                 break
-            if self.to_answer.is_set():
-                self.to_answer.clear()
-                time.sleep(0.5)
-                log = self.get_chat_log()
-                print(log)
-                response = self.llm.send_message(log + config['prompt'])
-                if response:
-                    self.send_chat(response)
+            self.to_answer.wait()
+            self.to_answer.clear()
+            time.sleep(0.5)
+            prompt = self.context_handler.get_prompt()
+            self.llm.send_message(prompt)
 
         self.stop()
