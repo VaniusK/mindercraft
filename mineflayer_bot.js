@@ -45,7 +45,7 @@ wss.on('connection', (ws) => {
                         if (wsClient) {
                             wsClient.send(JSON.stringify({
                                 type: "result",
-                                role: "system",
+                                role: "tool",
                                 content: JSON.stringify({
                                     action: "go_to_player",
                                     result: "success"
