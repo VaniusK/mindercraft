@@ -64,6 +64,7 @@ class MinecraftAgent:
         self.process = subprocess.Popen(
             command,
             stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
             text=True,
             encoding='utf-8'
         )
