@@ -1,6 +1,9 @@
 from imports import *
 from llm_providers.base_llm import *
 
+# NOT SUPPORTED
+# Use Custom + gemini's openai-compatible API
+
 
 class Gemini(BaseLLM):
     def __init__(self, api_key : str, model : str, agent_functions : List[Callable], **kwargs):
@@ -9,9 +12,9 @@ class Gemini(BaseLLM):
         self.config = types.GenerateContentConfig(
             #tools=agent_functions,
             max_output_tokens=1000,
-            top_k=64,
-            top_p=0.95,
-            temperature=1.5
+            thinking_config = types.ThinkingConfig(
+            thinking_level="LOW"
+            )
         )
         self.model = model
 
