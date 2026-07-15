@@ -1,12 +1,16 @@
 from typing import Any
 import threading
+from jinja2 import Environment, FileSystemLoader
 
 class ContextHandler:
-    def __init__(self, system_prompt: list[dict[Any, Any]], username: str):
-        self.system_prompt = system_prompt
+    def __init__(self, username: str, character: str):
         self.events: list[dict[Any, Any]] = []
         self.events_lock = threading.Lock()
         self.username = username
+        env = Environment(loader=FileSystemLoader('prompts'))
+        template = env.get_template(f'characters/{character}.jinja2')
+        result = template.render(username=username)
+        self.system_prompt = {"role": "system", "content": result}
     
     def add_event(self, event: dict[Any, Any]):
         if "role" not in event:
@@ -19,4 +23,4 @@ class ContextHandler:
             self.events.append({"role": event["role"], "content": event["content"]})
     
     def get_prompt(self):
-        return self.events + self.system_prompt
+        return self.events + [self.system_prompt]

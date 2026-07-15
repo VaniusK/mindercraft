@@ -16,7 +16,7 @@ class MinecraftAgent:
         self.result_queue = queue.Queue()
         self.chat_updated = threading.Event()
         self.delay = 0.1
-        self.context_handler = ContextHandler(config["prompt"], username)
+        self.context_handler = ContextHandler(username, config["character"])
         self.function_handler = FunctionHandler(self.context_handler, self.send_command)
         self.llm = LLM(None, self.function_handler.functions)
 
