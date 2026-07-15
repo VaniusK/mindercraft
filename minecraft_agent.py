@@ -13,11 +13,10 @@ class MinecraftAgent:
         self.loop = asyncio.new_event_loop()
         self.process = None
         self.to_answer = threading.Event()
-        self.result_queue = queue.Queue()
-        self.chat_updated = threading.Event()
         self.delay = 0.1
+        self.pending_results = {}
         self.context_handler = ContextHandler(username, config["character"])
-        self.function_handler = FunctionHandler(self.context_handler, self.send_command)
+        self.function_handler = FunctionHandler(self.context_handler, self.send_command, self.pending_results)
         self.llm = LLM(None, self.function_handler.functions)
 
     async def connect_websocket(self):
@@ -30,13 +29,16 @@ class MinecraftAgent:
                     async for message in ws:
                         print(message)
                         data = json.loads(message)
-                        self.context_handler.add_event(data)
-                        if data["type"] == "chat":
-                            if data['sender'] != self.context_handler.username:
-                                self.to_answer.set()
-                        elif data["type"] == "result":
-                            self.result_queue.put(data)
-                        self.chat_updated.set()
+                        match data["type"]:
+                            case "chat":
+                                self.context_handler.add_event(data)
+                                if data['sender'] != self.context_handler.username:
+                                    self.to_answer.set()
+                            case "result":
+                                self.context_handler.add_event(data)
+                                self.pending_results[data["id"]].set()
+                            case "inventory":
+                                self.context_handler.update_inventory(data["content"])
             except Exception as e:
                 print(f"Ошибка сокета {e}")
                 await asyncio.sleep(2)
