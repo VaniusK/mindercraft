@@ -1,2 +1,4 @@
 # mindercraft
-My take on mindcraft by kolbytn. On Python(still uses js for mineflayer). Strong focus on Gemini and its function calling
+My take on mindcraft by kolbytn. \n\n
+3 functions: send_chat, go_to_player and give_item \n\n
+Can be used with any provider with OpenAI-compatible API
