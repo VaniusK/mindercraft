@@ -24,7 +24,7 @@ async function send_chat(message, function_call_id) {
     wsClient.send(JSON.stringify({
         type: "result",
         id: function_call_id,
-        role: "tool",
+        role: "system",
         content: JSON.stringify({
             action: "send_chat",
             result: "success"
@@ -42,7 +42,7 @@ async function go_to_player(player_name, given_distance, function_call_id) {
             wsClient.send(JSON.stringify({
                 type: "result",
                 id: function_call_id,
-                role: "tool",
+                role: "system",
                 content: JSON.stringify({
                     action: "go_to_player",
                     result: "success"
@@ -52,7 +52,7 @@ async function go_to_player(player_name, given_distance, function_call_id) {
             wsClient.send(JSON.stringify({
                 type: "result",
                 id: function_call_id,
-                role: "tool",
+                role: "system",
                 content: JSON.stringify({
                     action: "go_to_player",
                     result: "error",
@@ -64,7 +64,7 @@ async function go_to_player(player_name, given_distance, function_call_id) {
         wsClient.send(JSON.stringify({
             type: "result",
             id: function_call_id,
-            role: "tool",
+            role: "system",
             content: JSON.stringify({
                 action: "go_to_player",
                 result: "error",
@@ -87,7 +87,7 @@ async function give_item(player_name, item_type, count, function_call_id) {
         wsClient.send(JSON.stringify({
             type: "result",
             id: function_call_id,
-            role: "tool",
+            role: "system",
             content: JSON.stringify({
                 action: "give_item",
                 result: "success"
@@ -97,7 +97,7 @@ async function give_item(player_name, item_type, count, function_call_id) {
         wsClient.send(JSON.stringify({
             type: "result",
             id: function_call_id,
-            role: "tool",
+            role: "system",
             content: JSON.stringify({
                 action: "give_item",
                 result: "error",

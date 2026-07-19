@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from google import genai
 load_dotenv()
 import os
 from abc import ABC, abstractmethod
@@ -14,6 +13,5 @@ import selectors
 import threading
 import re
 import queue
-from google.genai import types
 import websockets
 import asyncio

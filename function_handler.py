@@ -34,7 +34,7 @@ class FunctionHandler:
         id = str(uuid.uuid4())
         self.pending_results[id] = threading.Event()
         command = {"type": "go_to_player", "id": id, "player_name": player_name, "distance": 3}
-        self.context_handler.add_event({"role": "tool", "content": "executed command " + str(command)})
+        self.context_handler.add_event({"role": "system", "content": "executed command " + str(command)})
         self.send_command(command)
         self.pending_results[id].wait()
         self.pending_results.pop(id)
@@ -43,14 +43,14 @@ class FunctionHandler:
         """
         Поворачивается к игроку и кидает в его сторону 
         count предметов типа item_type(айди предмета)
-        Рекомендуется использовать после go_to_player()
+        Рекомендуется использовать после go_to_player()(иначе не докинешь)
         Возвращает error, если предметов нет
         """
         print("Called give_item()")
         id = str(uuid.uuid4())
         self.pending_results[id] = threading.Event()
         command = {"type": "give_item", "id": id, "player_name": player_name, "item_type": item_type, "count": count}
-        self.context_handler.add_event({"role": "tool", "content": "executed command " + str(command)})
+        self.context_handler.add_event({"role": "system", "content": "executed command " + str(command)})
         self.send_command(command)
         self.pending_results[id].wait()
         self.pending_results.pop(id)

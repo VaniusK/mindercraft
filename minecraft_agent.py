@@ -66,7 +66,7 @@ class MinecraftAgent:
             text=True,
             encoding='utf-8'
         )
-        time.sleep(5)
+        time.sleep(3)
         threading.Thread(target=self.run_websocket, daemon=True).start()
         threading.Thread(target=self.main_loop, daemon=True).start()
 

@@ -8,6 +8,10 @@ def format_response(response: str) -> str:
     return response
 
 def functions_to_json(functions: list[Callable]) -> list[dict[Any, Any]]:
+    type_mapper = {
+        "int": "number",
+        "str": "string"
+    }
     jsons = []
     for function in functions:
         json = {}
@@ -24,7 +28,7 @@ def functions_to_json(functions: list[Callable]) -> list[dict[Any, Any]]:
             if name == "self":
                 continue
             function_params[name] = {
-                "type": str(param.annotation)
+                "type": type_mapper[param.annotation.__name__]
             }
             if param.default == inspect.Parameter.empty:
                 required_params.append(name)
@@ -33,7 +37,6 @@ def functions_to_json(functions: list[Callable]) -> list[dict[Any, Any]]:
         json_params["required"] = required_params;
         json["function"]["parameters"] = json_params
         jsons.append(json)
-
     return jsons
 
 

@@ -24,7 +24,7 @@ class ContextHandler:
     def get_prompt(self):
         result = self.template.render(username=self.username, inventory=self.inventory)
         self.system_prompt = {"role": "system", "content": result}
-        return self.events + [self.system_prompt]
+        return [self.system_prompt] + self.events
     
     def update_inventory(self, inventory):
         for i in range(len(inventory)):
